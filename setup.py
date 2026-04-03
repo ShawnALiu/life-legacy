@@ -1,6 +1,7 @@
 import os
 import json
 import sys
+import shutil
 from datetime import datetime
 
 
@@ -22,6 +23,8 @@ def main():
 
     hometown = input("请输入你的家乡 (如 杭州): ").strip()
 
+    avatar_path = input("\n请输入头像图片路径 (直接回车跳过): ").strip()
+    
     data_dir = os.path.join(os.path.dirname(__file__), "skills", "data")
     os.makedirs(data_dir, exist_ok=True)
 
@@ -36,6 +39,24 @@ def main():
     config_path = os.path.join(data_dir, "config.json")
     with open(config_path, "w", encoding="utf-8") as f:
         json.dump(config, f, indent=4, ensure_ascii=False)
+
+    # 处理头像
+    if avatar_path and os.path.exists(avatar_path):
+        avatar_dir = os.path.join(data_dir, "avatars")
+        os.makedirs(avatar_dir, exist_ok=True)
+        dest_avatar = os.path.join(avatar_dir, "avatar.jpg")
+        
+        # 复制头像文件
+        ext = os.path.splitext(avatar_path)[1].lower()
+        if ext in ['.jpg', '.jpeg', '.png', '.webp', '.gif']:
+            dest_avatar = os.path.join(avatar_dir, f"avatar{ext}")
+        
+        shutil.copy2(avatar_path, dest_avatar)
+        config["avatar"] = os.path.basename(dest_avatar)
+        
+        with open(config_path, "w", encoding="utf-8") as f:
+            json.dump(config, f, indent=4, ensure_ascii=False)
+        print(f"✅ 头像已设置: {os.path.basename(dest_avatar)}")
 
     timeline_path = os.path.join(data_dir, "timeline.json")
     if not os.path.exists(timeline_path) or os.path.getsize(timeline_path) == 0:
@@ -56,6 +77,7 @@ def main():
     os.makedirs(os.path.join(data_dir, "diaries"), exist_ok=True)
     os.makedirs(os.path.join(data_dir, "chats"), exist_ok=True)
     os.makedirs(os.path.join(data_dir, "photos"), exist_ok=True)
+    os.makedirs(os.path.join(data_dir, "avatars"), exist_ok=True)
 
     print(f"\n✅ 初始化成功！你的数字档案已创建于 {data_dir}")
     print(f"   用户: {name} | 出生: {birth_year} | 家乡: {hometown}")
@@ -63,6 +85,7 @@ def main():
     print(f"   skills/data/diaries/   - 存放日记文件 (.md 或 .txt)")
     print(f"   skills/data/chats/     - 存放聊天记录 (.json)")
     print(f"   skills/data/photos/    - 存放照片描述文件 (.txt)")
+    print(f"   skills/data/avatars/  - 存放头像文件")
     print(f"   skills/data/timeline.json - 人生大事记")
     print("\n🚀 启动方式:")
     print("   CLI:  python main.py")

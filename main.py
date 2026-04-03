@@ -128,12 +128,21 @@ class DigitalTwin:
         birth_year = self.config.get("birth_year", 1990)
         current_year = datetime.now().year
         mode = get_current_mode()
+        
+        # Check for avatar
+        avatar = self.config.get("avatar", "")
+        if avatar:
+            avatar_url = f"/avatars/{avatar}"
+        else:
+            avatar_url = ""
+        
         return {
             "user_name": self.config.get("user_name", "Unknown"),
             "age": current_year - birth_year,
             "mode": mode,
             "mode_display": "Living Mode" if mode == "LIVING" else "Legacy Mode",
             "conversation_count": len(self.conversation_history) // 2,
+            "avatar": avatar_url,
         }
 
 

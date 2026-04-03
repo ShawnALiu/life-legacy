@@ -5,252 +5,1911 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Life Legacy - 数字生命</title>
     <style>
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #141416;
+            --bg-tertiary: #1c1c1f;
+            --bg-hover: #252529;
+            --accent: #22c55e;
+            --accent-dim: #16a34a;
+            --text-primary: #fafafa;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --border: #27272a;
+            --border-light: #3f3f46;
+            --radius: 8px;
+            --radius-lg: 12px;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #0f0f0f;
-            color: #e0e0e0;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             height: 100vh;
             display: flex;
-            flex-direction: column;
+            overflow: hidden;
         }
 
-        .header {
-            padding: 16px 24px;
-            border-bottom: 1px solid #2a2a2a;
+        /* Sidebar */
+        .sidebar {
+            width: 240px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            flex-shrink: 0;
         }
 
-        .header h1 {
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-header h1 {
             font-size: 18px;
-            font-weight: 500;
-            color: #fff;
+            font-weight: 600;
+            color: var(--accent);
+            margin-top: 12px;
         }
 
-        .header .status {
-            font-size: 12px;
-            color: #888;
-        }
-
-        .mode-badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 500;
-        }
-
-        .mode-living { background: #1a3a2a; color: #4ade80; }
-        .mode-legacy { background: #2a1a3a; color: #a78bfa; }
-
-        .chat-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 24px;
+        .user-profile {
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            align-items: center;
+            gap: 8px;
         }
 
-        .message {
-            max-width: 70%;
+        .avatar-container {
+            position: relative;
+            width: 72px;
+            height: 72px;
+            cursor: pointer;
+        }
+
+        .avatar-container .avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent);
+        }
+
+        .avatar-placeholder {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+        }
+
+        .avatar-placeholder svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        .avatar-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+            border: 2px solid var(--accent);
+        }
+
+        .avatar-overlay svg {
+            width: 24px;
+            height: 24px;
+            color: white;
+        }
+
+        .avatar-container:hover .avatar-overlay {
+            opacity: 1;
+        }
+
+        .sidebar-header .status {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
             padding: 12px 16px;
-            border-radius: 16px;
-            line-height: 1.6;
+            border-radius: var(--radius);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
             font-size: 14px;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .message.user {
-            align-self: flex-end;
-            background: #1a5c3a;
-            color: #fff;
-            border-bottom-right-radius: 4px;
-        }
-
-        .message.assistant {
-            align-self: flex-start;
-            background: #1e1e1e;
-            color: #e0e0e0;
-            border-bottom-left-radius: 4px;
-        }
-
-        .message .label {
-            font-size: 11px;
-            color: #888;
             margin-bottom: 4px;
         }
 
-        .input-area {
-            padding: 16px 24px;
-            border-top: 1px solid #2a2a2a;
-            display: flex;
-            gap: 12px;
+        .nav-item:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
         }
 
-        .input-area input {
+        .nav-item.active {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--accent);
+        }
+
+        .nav-item svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        /* Main Content */
+        .main-content {
             flex: 1;
-            padding: 12px 16px;
-            background: #1e1e1e;
-            border: 1px solid #333;
-            border-radius: 24px;
-            color: #fff;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .page-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-secondary);
+        }
+
+        .page-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .page-header p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .page-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 24px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 24px;
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -20px;
+            top: 20px;
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            border-radius: 50%;
+            border: 2px solid var(--bg-primary);
+        }
+
+        .timeline-year {
+            font-size: 12px;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .timeline-event {
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .timeline-feeling {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .timeline-tags {
+            display: flex;
+            gap: 6px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            font-size: 11px;
+            padding: 2px 8px;
+            background: var(--bg-hover);
+            border-radius: 4px;
+            color: var(--text-muted);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: var(--radius);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            outline: none;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-dim);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-hover);
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text-primary);
             font-size: 14px;
             outline: none;
             transition: border-color 0.2s;
         }
 
-        .input-area input:focus {
-            border-color: #4ade80;
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            border-color: var(--accent);
         }
 
-        .input-area button {
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        /* Lists */
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .item-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        .item-row:hover {
+            border-color: var(--border-light);
+        }
+
+        .item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .item-title {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .item-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Photo Grid */
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .photo-card {
+            background: var(--bg-tertiary);
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: transform 0.2s;
+        }
+
+        .photo-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .photo-placeholder {
+            height: 120px;
+            background: var(--bg-hover);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+        }
+
+        .photo-info {
+            padding: 12px;
+        }
+
+        .photo-name {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .photo-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Chat */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 140px);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .chat-message {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .chat-message.user {
+            align-self: flex-end;
+            background: var(--accent);
+            color: #000;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-message.assistant {
+            align-self: flex-start;
+            background: var(--bg-tertiary);
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-input-area {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 12px;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+        }
+
+        .chat-input-area input:focus {
+            border-color: var(--accent);
+        }
+
+        .chat-input-area button {
             padding: 12px 24px;
-            background: #1a5c3a;
-            color: #fff;
+            background: var(--accent);
+            color: #000;
             border: none;
             border-radius: 24px;
             cursor: pointer;
-            font-size: 14px;
-            transition: background 0.2s;
+            font-weight: 500;
         }
 
-        .input-area button:hover {
-            background: #227a4a;
-        }
-
-        .input-area button:disabled {
-            background: #333;
+        .chat-input-area button:disabled {
+            opacity: 0.5;
             cursor: not-allowed;
         }
 
-        .typing-indicator {
-            align-self: flex-start;
-            padding: 12px 16px;
-            background: #1e1e1e;
-            border-radius: 16px;
-            color: #888;
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            transform: scale(0.95);
+            transition: transform 0.2s;
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: var(--radius);
+        }
+
+        .modal-close:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* Editor */
+        .editor {
+            min-height: 300px;
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text-primary);
             font-size: 14px;
+            line-height: 1.6;
+            outline: none;
         }
 
-        .typing-indicator span {
-            animation: blink 1.4s infinite;
+        .editor:focus {
+            border-color: var(--accent);
         }
 
-        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
-        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-
-        @keyframes blink {
-            0%, 60%, 100% { opacity: 0.3; }
-            30% { opacity: 1; }
-        }
-
-        .welcome {
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-lg);
+            padding: 40px;
             text-align: center;
-            margin-top: 20vh;
-            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
-        .welcome h2 { color: #aaa; margin-bottom: 8px; }
+        .upload-area:hover {
+            border-color: var(--accent);
+            background: rgba(34, 197, 94, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+
+        .upload-text {
+            color: var(--text-secondary);
+        }
+
+        .upload-text strong {
+            color: var(--accent);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        /* Utilities */
+        .page {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+        }
+        .hidden { display: none !important; }
+
+        .avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent);
+            display: none;
+        }
+
+        .avatar.visible {
+            display: block;
+        }
+        .flex { display: flex; }
+        .gap-2 { gap: 8px; }
+        .gap-4 { gap: 16px; }
+        .mt-4 { margin-top: 16px; }
+        .mb-4 { margin-bottom: 16px; }
+
+        /* Loading */
+        .loading {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            table-layout: fixed;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 10px 12px;
+            text-align: left;
+            box-sizing: border-box;
+        }
+
+        .data-table th {
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border-light);
+        }
+
+        .data-table tr {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table tr:hover {
+            background: var(--bg-hover);
+        }
+
+        .data-table td {
+            vertical-align: middle;
+            height: 44px;
+        }
+
+        .data-table .cell-year {
+            width: 80px;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .data-table .cell-event {
+            width: 28%;
+            font-weight: 500;
+            word-wrap: break-word;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .data-table .cell-feeling {
+            width: 22%;
+            color: var(--text-secondary);
+            font-style: italic;
+            word-wrap: break-word;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .data-table .cell-tags {
+            width: 20%;
+            display: flex;
+            gap: 4px;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-items: center;
+            min-height: 20px;
+            white-space: nowrap;
+            overflow: visible;
+        }
+
+        .data-table .tag {
+            font-size: 11px;
+            padding: 2px 8px;
+            background: var(--bg-hover);
+            border-radius: 4px;
+            color: var(--text-muted);
+            line-height: 1.4;
+            margin: 0;
+            white-space: nowrap;
+            display: inline-block;
+        }
+
+        /* Scroll Container */
+        .scroll-container {
+            max-height: 350px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        .scroll-container .data-table {
+            margin: 0;
+            width: 100%;
+        }
+
+        .scroll-container .data-table th {
+            position: sticky;
+            top: 0;
+            background: var(--bg-secondary);
+            z-index: 1;
+        }
+
+        .timeline-scroll {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        /* Diary Cards */
+        .diary-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .diary-card:hover {
+            border-color: var(--accent);
+            background: var(--bg-hover);
+        }
+
+        .diary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .diary-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .diary-date {
+            font-size: 12px;
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        .diary-preview {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .diary-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Life Legacy</h1>
-        <div class="status" id="status">加载中...</div>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="user-profile" id="userProfile">
+                <div class="avatar-container" onclick="document.getElementById('avatarInput').click()">
+                    <img id="userAvatar" src="" alt="头像" class="avatar hidden">
+                    <div class="avatar-placeholder" id="avatarPlaceholder">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </div>
+                    <div class="avatar-overlay">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                            <circle cx="12" cy="13" r="4"/>
+                        </svg>
+                    </div>
+                </div>
+                <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+            </div>
+            <h1>Life Legacy</h1>
+            <div class="status" id="statusBar">加载中...</div>
+        </div>
+        <nav class="nav-menu">
+            <div class="nav-item active" data-page="chat">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                对话
+            </div>
+            <div class="nav-item" data-page="timeline">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12,6 12,12 16,14"/>
+                </svg>
+                人生大事记
+            </div>
+            <div class="nav-item" data-page="diaries">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
+                日记
+            </div>
+            <div class="nav-item" data-page="chats">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    <line x1="9" y1="10" x2="15" y2="10"/>
+                </svg>
+                聊天记录
+            </div>
+            <div class="nav-item" data-page="photos">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21,15 16,10 5,21"/>
+                </svg>
+                照片
+            </div>
+            <div class="nav-item" data-page="values">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 16v-4M12 8h.01"/>
+                </svg>
+                价值观
+            </div>
+            <div class="nav-item" data-page="relationships">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                关系图谱
+            </div>
+        </nav>
     </div>
 
-    <div class="chat-container" id="chatContainer">
-        <div class="welcome" id="welcome">
-            <h2>数字生命对话</h2>
-            <p>输入消息开始与你的数字孪生体对话</p>
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Chat Page -->
+        <div id="page-chat" class="page">
+            <div class="page-header">
+                <h2>与数字孪生体对话</h2>
+                <p>跨越时空的对话，让记忆永存</p>
+            </div>
+            <div class="page-content" style="padding: 0;">
+                <div class="chat-container">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="chat-message assistant">你好！我是你的数字孪生体。有什么想聊的吗？</div>
+                    </div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chatInput" placeholder="输入消息..." autocomplete="off">
+                        <button id="chatSendBtn">发送</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline Page -->
+        <div id="page-timeline" class="page hidden">
+            <div class="page-header">
+                <h2>人生大事记</h2>
+                <p>按时间线记录生命中的每一个重要时刻</p>
+            </div>
+            <div class="page-content">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">时间线表格</span>
+                        <button class="btn btn-primary" onclick="openMilestoneModal()">+ 添加</button>
+                    </div>
+                    <div class="scroll-container">
+                        <table class="data-table" id="timelineTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 80px;">年份</th>
+                                    <th style="width: 28%;">事件</th>
+                                    <th style="width: 22%;">感受</th>
+                                    <th style="width: 20%;">标签</th>
+                                    <th style="width: 120px;">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="timelineTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Timeline Visualization -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <span class="card-title">时间线视图</span>
+                    </div>
+                    <div class="scroll-container timeline-scroll">
+                        <div class="timeline" id="timelineList">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Diaries Page -->
+        <div id="page-diaries" class="page hidden">
+            <div class="page-header">
+                <h2>日记</h2>
+                <p>记录每天的思考与感悟</p>
+            </div>
+            <div class="page-content">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">日记列表</span>
+                        <button class="btn btn-primary" onclick="openDiaryModal()">+ 新建日记</button>
+                    </div>
+                    <div class="item-list" id="diariesList">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chats Page -->
+        <div id="page-chats" class="page hidden">
+            <div class="page-header">
+                <h2>聊天记录</h2>
+                <p>导入并管理历史聊天记录</p>
+            </div>
+            <div class="page-content">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">聊天记录文件</span>
+                        <button class="btn btn-primary" onclick="openChatModal()">+ 导入</button>
+                    </div>
+                    <div class="item-list" id="chatsList">
+                        <!-- Chat items will be rendered here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Photos Page -->
+        <div id="page-photos" class="page hidden">
+            <div class="page-header">
+                <h2>照片</h2>
+                <p>上传照片并自动分析生成描述</p>
+            </div>
+            <div class="page-content">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">照片库</span>
+                    </div>
+                    <div class="upload-area" id="photoUploadArea">
+                        <div class="upload-icon">📷</div>
+                        <div class="upload-text">
+                            <strong>点击上传</strong> 或拖拽照片到这里<br>
+                            支持 JPG、PNG、WebP 格式
+                        </div>
+                        <input type="file" id="photoInput" accept="image/*" style="display: none;">
+                    </div>
+                    <div class="photo-grid mt-4" id="photosList">
+                        <!-- Photo items will be rendered here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Values Page -->
+        <div id="page-values" class="page hidden">
+            <div class="page-header flex gap-4" style="justify-content: space-between; align-items: center;">
+                <div>
+                    <h2>个人价值观与语言风格</h2>
+                    <p>定义你的核心价值观和说话方式</p>
+                </div>
+                <button class="btn btn-secondary" onclick="extractInsights()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="13,2 3,14 12,14 11,22 21,10 12,10 13,2"/>
+                    </svg>
+                    AI 提取
+                </button>
+            </div>
+            <div class="page-content">
+                <!-- AI Insights Section -->
+                <div class="card" id="aiInsightsCard" style="display: none;">
+                    <div class="card-header">
+                        <span class="card-title">AI 提取的经验与关系</span>
+                    </div>
+                    <div id="insightsContent"></div>
+                </div>
+                
+                <!-- Manual Values -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">价值观与风格</span>
+                        <button class="btn btn-primary" onclick="saveValues()">保存</button>
+                    </div>
+                    <div class="editor" id="valuesEditor" contenteditable="true"></div>
+                </div>
+                
+                <!-- Extracted Lessons -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">经验教训</span>
+                    </div>
+                    <div class="item-list" id="lessonsList">
+                        <div class="empty-state"><h3>暂无经验</h3><p>点击"AI 提取"从时间线中提取</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Relationships Page -->
+        <div id="page-relationships" class="page hidden">
+            <div class="page-header flex gap-4" style="justify-content: space-between; align-items: center;">
+                <div>
+                    <h2>关系图谱</h2>
+                    <p>定义你与重要人物的关系和称呼方式</p>
+                </div>
+                <button class="btn btn-secondary" onclick="extractInsights()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="13,2 3,14 12,14 11,22 21,10 12,10 13,2"/>
+                    </svg>
+                    AI 提取
+                </button>
+            </div>
+            <div class="page-content">
+                <!-- Extracted Relationships -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">AI 提取的关系</span>
+                    </div>
+                    <div class="item-list" id="extractedRelationshipsList">
+                        <div class="empty-state"><h3>暂无关系</h3><p>点击"AI 提取"从时间线中提取</p></div>
+                    </div>
+                </div>
+                
+                <!-- Manual Relationships -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">关系网络</span>
+                        <button class="btn btn-primary" onclick="saveRelationships()">保存</button>
+                    </div>
+                    <div class="editor" id="relationshipsEditor" contenteditable="true"></div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="input-area">
-        <input type="text" id="messageInput" placeholder="输入消息..." autocomplete="off">
-        <button id="sendBtn" onclick="sendMessage()">发送</button>
+    <!-- Milestone Modal -->
+    <div class="modal-overlay" id="milestoneModal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title" id="milestoneModalTitle">添加里程碑</span>
+                <button class="modal-close" onclick="closeMilestoneModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="milestoneIndex">
+                <div class="form-group">
+                    <label class="form-label">年份</label>
+                    <input type="number" class="form-input" id="milestoneYear" placeholder="如: 2008">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">事件</label>
+                    <input type="text" class="form-input" id="milestoneEvent" placeholder="发生了什么？">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">感受</label>
+                    <textarea class="form-textarea" id="milestoneFeeling" placeholder="当时的感受如何？"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">标签（逗号分隔）</label>
+                    <input type="text" class="form-input" id="milestoneTags" placeholder="如: 教育, 成长">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeMilestoneModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveMilestone()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diary Modal -->
+    <div class="modal-overlay" id="diaryModal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title" id="diaryModalTitle">新建日记</span>
+                <button class="modal-close" onclick="closeDiaryModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">标题</label>
+                    <input type="text" class="form-input" id="diaryTitleInput" placeholder="给这篇日记起个标题">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">日期</label>
+                    <input type="date" class="form-input" id="diaryDateInput">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">正文</label>
+                    <textarea class="form-textarea" id="diaryContent" style="min-height: 250px;" placeholder="今天发生了什么？"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="deleteDiaryBtn" onclick="deleteDiaryFromModal()">删除</button>
+                <button class="btn btn-secondary" onclick="closeDiaryModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveDiary()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Import Modal -->
+    <div class="modal-overlay" id="chatModal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">导入聊天记录</span>
+                <button class="modal-close" onclick="closeChatModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="chatFilename">
+                <div class="form-group">
+                    <label class="form-label">文件名</label>
+                    <input type="text" class="form-input" id="chatFilenameInput" placeholder="chat-2024.json">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">JSON 内容</label>
+                    <textarea class="form-textarea" id="chatContent" style="min-height: 200px;" placeholder='{"messages": []}'></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger hidden" id="deleteChatBtn" onclick="deleteChat()">删除</button>
+                <button class="btn btn-secondary" onclick="closeChatModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveChat()">保存</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        const chatContainer = document.getElementById('chatContainer');
-        const messageInput = document.getElementById('messageInput');
-        const sendBtn = document.getElementById('sendBtn');
-        const statusEl = document.getElementById('status');
-        const welcomeEl = document.getElementById('welcome');
+        // State
+        let currentPage = 'chat';
+        let timelineData = { meta: {}, milestones: [] };
+        let diariesData = [];
+        let chatsData = [];
+        let photosData = [];
 
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStatus();
+            initNavigation();
+            initChat();
+            loadAllData();
         });
 
+        // Navigation
+        function initNavigation() {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const page = item.dataset.page;
+                    navigateTo(page);
+                });
+            });
+        }
+
+        function navigateTo(page) {
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.querySelector(`[data-page="${page}"]`).classList.add('active');
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            document.getElementById(`page-${page}`).classList.remove('hidden');
+            currentPage = page;
+        }
+
+        // Load Status
         async function loadStatus() {
             try {
                 const res = await fetch('/api/status');
                 const data = await res.json();
-                const modeClass = data.mode === 'LIVING' ? 'mode-living' : 'mode-legacy';
-                statusEl.innerHTML = `${data.user_name} · ${data.age}岁 · <span class="mode-badge ${modeClass}">${data.mode_display}</span>`;
+                document.getElementById('statusBar').textContent = `${data.user_name} · ${data.age}岁`;
+                
+                const avatarImg = document.getElementById('userAvatar');
+                const avatarPlaceholder = document.getElementById('avatarPlaceholder');
+                
+                if (data.avatar) {
+                    const avatarSrc = data.avatar + '?t=' + Date.now();
+                    avatarImg.onload = function() {
+                        avatarImg.classList.add('visible');
+                        avatarImg.classList.remove('hidden');
+                        avatarPlaceholder.style.display = 'none';
+                    };
+                    avatarImg.onerror = function() {
+                        avatarImg.classList.remove('visible');
+                        avatarImg.classList.add('hidden');
+                        avatarPlaceholder.style.display = '';
+                    };
+                    avatarImg.src = avatarSrc;
+                } else {
+                    avatarImg.classList.remove('visible');
+                    avatarImg.classList.add('hidden');
+                    avatarPlaceholder.style.display = '';
+                }
             } catch (e) {
-                statusEl.textContent = '连接中...';
+                document.getElementById('statusBar').textContent = '未初始化';
             }
         }
 
-        function addMessage(role, content) {
-            if (welcomeEl) welcomeEl.style.display = 'none';
+        // Avatar upload
+        document.getElementById('avatarInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const res = await fetch('/api/avatar', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                
+                if (data.url) {
+                    const avatarImg = document.getElementById('userAvatar');
+                    const avatarPlaceholder = document.getElementById('avatarPlaceholder');
+                    
+                    avatarImg.onload = function() {
+                        avatarImg.classList.add('visible');
+                        avatarImg.classList.remove('hidden');
+                        avatarPlaceholder.style.display = 'none';
+                    };
+                    avatarImg.onerror = function() {
+                        avatarImg.classList.remove('visible');
+                        avatarImg.classList.add('hidden');
+                        avatarPlaceholder.style.display = '';
+                    };
+                    avatarImg.src = data.url + '?t=' + Date.now();
+                }
+            } catch (err) {
+                alert('上传头像失败');
+            }
+            e.target.value = '';
+        });
 
-            const msg = document.createElement('div');
-            msg.className = `message ${role}`;
-            msg.innerHTML = `<div class="label">${role === 'user' ? '你' : '数字生命'}</div>${content}`;
-            chatContainer.appendChild(msg);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-            return msg;
+        // Load All Data
+        async function loadAllData() {
+            await Promise.all([
+                loadTimeline(),
+                loadDiaries(),
+                loadChats(),
+                loadPhotos(),
+                loadValues(),
+                loadRelationships()
+            ]);
         }
 
-        function addTypingIndicator() {
-            if (welcomeEl) welcomeEl.style.display = 'none';
-
-            const indicator = document.createElement('div');
-            indicator.className = 'typing-indicator';
-            indicator.id = 'typingIndicator';
-            indicator.innerHTML = '<span>●</span><span>●</span><span>●</span>';
-            chatContainer.appendChild(indicator);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+        // ============================================================
+        // Timeline
+        // ============================================================
+        async function loadTimeline() {
+            try {
+                const res = await fetch('/api/timeline');
+                timelineData = await res.json();
+                renderTimeline();
+            } catch (e) {
+                console.error('Failed to load timeline', e);
+            }
         }
 
-        function removeTypingIndicator() {
-            const indicator = document.getElementById('typingIndicator');
-            if (indicator) indicator.remove();
+        function renderTimeline() {
+            const listContainer = document.getElementById('timelineList');
+            const tableBody = document.getElementById('timelineTableBody');
+            
+            if (!timelineData.milestones || timelineData.milestones.length === 0) {
+                listContainer.innerHTML = '<div class="empty-state"><h3>暂无记录</h3><p>点击"添加"记录你的第一个里程碑</p></div>';
+                tableBody.innerHTML = '<tr><td colspan="5" class="empty-state">暂无记录</td></tr>';
+                return;
+            }
+
+            const sorted = [...timelineData.milestones].sort((a, b) => b.year - a.year);
+            
+            // Render table
+            tableBody.innerHTML = sorted.map((m, i) => `
+                <tr>
+                    <td class="cell-year">${m.year}</td>
+                    <td class="cell-event">${m.event}</td>
+                    <td class="cell-feeling">${m.feeling || '-'}</td>
+                    <td class="cell-tags">${(m.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}</td>
+                    <td>
+                        <button class="btn btn-secondary btn-sm" onclick="editMilestone(${timelineData.milestones.indexOf(m)})">编辑</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteMilestone(${timelineData.milestones.indexOf(m)})">删除</button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            // Render timeline visualization
+            listContainer.innerHTML = sorted.map(m => `
+                <div class="timeline-item">
+                    <div class="timeline-year">${m.year}</div>
+                    <div class="timeline-event">${m.event}</div>
+                    ${m.feeling ? `<div class="timeline-feeling">${m.feeling}</div>` : ''}
+                    ${m.tags && m.tags.length ? `<div class="timeline-tags">${m.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>` : ''}
+                </div>
+            `).join('');
         }
 
-        async function sendMessage() {
-            const message = messageInput.value.trim();
-            if (!message) return;
+        function openMilestoneModal(index = -1) {
+            document.getElementById('milestoneIndex').value = index;
+            document.getElementById('milestoneModalTitle').textContent = index === -1 ? '添加里程碑' : '编辑里程碑';
+            
+            if (index >= 0) {
+                const m = timelineData.milestones[index];
+                document.getElementById('milestoneYear').value = m.year;
+                document.getElementById('milestoneEvent').value = m.event;
+                document.getElementById('milestoneFeeling').value = m.feeling || '';
+                document.getElementById('milestoneTags').value = (m.tags || []).join(', ');
+            } else {
+                document.getElementById('milestoneYear').value = '';
+                document.getElementById('milestoneEvent').value = '';
+                document.getElementById('milestoneFeeling').value = '';
+                document.getElementById('milestoneTags').value = '';
+            }
+            document.getElementById('milestoneModal').classList.add('active');
+        }
 
-            messageInput.value = '';
-            sendBtn.disabled = true;
+        function closeMilestoneModal() {
+            document.getElementById('milestoneModal').classList.remove('active');
+        }
 
-            addMessage('user', message);
-            addTypingIndicator();
+        async function saveMilestone() {
+            const index = parseInt(document.getElementById('milestoneIndex').value);
+            const milestone = {
+                year: parseInt(document.getElementById('milestoneYear').value),
+                event: document.getElementById('milestoneEvent').value,
+                feeling: document.getElementById('milestoneFeeling').value,
+                tags: document.getElementById('milestoneTags').value.split(',').map(t => t.trim()).filter(t => t)
+            };
+
+            if (!milestone.year || !milestone.event) {
+                alert('请填写年份和事件');
+                return;
+            }
+
+            if (index >= 0) {
+                timelineData.milestones[index] = milestone;
+            } else {
+                timelineData.milestones.push(milestone);
+            }
+
+            await fetch('/api/timeline', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(timelineData)
+            });
+
+            closeMilestoneModal();
+            loadTimeline();
+        }
+
+        async function deleteMilestone(index) {
+            if (!confirm('确定要删除这个里程碑吗？')) return;
+            timelineData.milestones.splice(index, 1);
+            await fetch('/api/timeline', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(timelineData)
+            });
+            loadTimeline();
+        }
+
+        // ============================================================
+        // Diaries
+        // ============================================================
+        async function loadDiaries() {
+            try {
+                const res = await fetch('/api/diaries');
+                diariesData = await res.json();
+                renderDiaries();
+            } catch (e) {
+                console.error('Failed to load diaries', e);
+            }
+        }
+
+        function renderDiaries() {
+            const container = document.getElementById('diariesList');
+            if (diariesData.length === 0) {
+                container.innerHTML = '<div class="empty-state"><h3>暂无日记</h3><p>点击"新建日记"开始记录</p></div>';
+                return;
+            }
+
+            container.innerHTML = diariesData.map(d => `
+                <div class="diary-card" onclick="editDiary('${d.filename}')">
+                    <div class="diary-header">
+                        <div class="diary-title">${d.title}</div>
+                        <div class="diary-date">${d.date || '无日期'}</div>
+                    </div>
+                    <div class="diary-preview">${d.preview}</div>
+                    <div class="diary-footer">
+                        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); editDiary('${d.filename}')">编辑</button>
+                        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); deleteDiaryDirect('${d.filename}')">删除</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function editDiary(filename) {
+            openDiaryModal(filename);
+        }
+
+        function openDiaryModal(filename = '') {
+            document.getElementById('diaryModalTitle').textContent = filename ? '编辑日记' : '新建日记';
+            document.getElementById('deleteDiaryBtn').style.display = filename ? '' : 'none';
+            
+            if (filename) {
+                const diary = diariesData.find(d => d.filename === filename);
+                document.getElementById('diaryTitleInput').value = diary.title;
+                document.getElementById('diaryDateInput').value = diary.date || '';
+                document.getElementById('diaryContent').value = diary.body;
+            } else {
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('diaryTitleInput').value = '';
+                document.getElementById('diaryDateInput').value = today;
+                document.getElementById('diaryContent').value = '';
+            }
+            document.getElementById('diaryModal').classList.add('active');
+        }
+
+        function closeDiaryModal() {
+            document.getElementById('diaryModal').classList.remove('active');
+        }
+
+        async function saveDiary() {
+            const title = document.getElementById('diaryTitleInput').value.trim();
+            const date = document.getElementById('diaryDateInput').value;
+            const body = document.getElementById('diaryContent').value;
+
+            if (!title || !date || !body) {
+                alert('请填写标题、日期和正文');
+                return;
+            }
 
             try {
-                const response = await fetch(`/api/chat/stream?message=${encodeURIComponent(message)}`);
-                const reader = response.body.getReader();
+                const res = await fetch('/api/diaries', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, date, body })
+                });
+
+                const data = await res.json();
+
+                if (data.exists) {
+                    if (confirm(data.message)) {
+                        await fetch('/api/diaries', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ title, date, body, overwrite: true })
+                        });
+                        closeDiaryModal();
+                        loadDiaries();
+                    }
+                    return;
+                }
+
+                if (!res.ok) {
+                    alert('保存失败: ' + (data.detail || '未知错误'));
+                    return;
+                }
+
+                closeDiaryModal();
+                loadDiaries();
+            } catch (err) {
+                alert('保存失败: ' + err.message);
+            }
+        }
+
+        async function deleteDiaryFromModal() {
+            const date = document.getElementById('diaryDateInput').value;
+            if (!date) return;
+            const filename = `${date}.json`;
+            if (!confirm('确定要删除这篇日记吗？')) return;
+            await fetch(`/api/diaries/${filename}`, { method: 'DELETE' });
+            closeDiaryModal();
+            loadDiaries();
+        }
+
+        async function deleteDiaryDirect(filename) {
+            if (!filename || !confirm('确定要删除这篇日记吗？')) return;
+            await fetch(`/api/diaries/${filename}`, { method: 'DELETE' });
+            loadDiaries();
+        }
+
+        // ============================================================
+        // Chats
+        // ============================================================
+        async function loadChats() {
+            try {
+                const res = await fetch('/api/chats');
+                chatsData = await res.json();
+                renderChats();
+            } catch (e) {
+                console.error('Failed to load chats', e);
+            }
+        }
+
+        function renderChats() {
+            const container = document.getElementById('chatsList');
+            if (chatsData.length === 0) {
+                container.innerHTML = '<div class="empty-state"><h3>暂无聊天记录</h3><p>点击"导入"添加聊天记录文件</p></div>';
+                return;
+            }
+
+            container.innerHTML = chatsData.map(c => `
+                <div class="item-row">
+                    <div class="item-info">
+                        <div class="item-title">${c.filename}</div>
+                        <div class="item-meta">${c.message_count} 条消息 · ${c.modified}</div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn btn-secondary btn-sm" onclick="editChat('${c.filename}')">编辑</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openChatModal(filename = '') {
+            document.getElementById('deleteChatBtn').classList.toggle('hidden', !filename);
+            document.getElementById('chatFilename').value = filename;
+            if (filename) {
+                const chat = chatsData.find(c => c.filename === filename);
+                document.getElementById('chatFilenameInput').value = chat.filename;
+                document.getElementById('chatContent').value = JSON.stringify({ messages: [] }, null, 2);
+            } else {
+                document.getElementById('chatFilenameInput').value = 'chat-new.json';
+                document.getElementById('chatContent').value = '{\n  "messages": []\n}';
+            }
+            document.getElementById('chatModal').classList.add('active');
+        }
+
+        function closeChatModal() {
+            document.getElementById('chatModal').classList.remove('active');
+        }
+
+        async function saveChat() {
+            const filename = document.getElementById('chatFilenameInput').value;
+            const content = document.getElementById('chatContent').value;
+
+            try {
+                const data = JSON.parse(content);
+                await fetch('/api/chats', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filename, messages: data.messages || [] })
+                });
+                closeChatModal();
+                loadChats();
+            } catch (e) {
+                alert('JSON 格式不正确');
+            }
+        }
+
+        async function deleteChat() {
+            const filename = document.getElementById('chatFilename').value;
+            if (!filename || !confirm('确定要删除这条聊天记录吗？')) return;
+
+            await fetch(`/api/chats/${filename}`, { method: 'DELETE' });
+            closeChatModal();
+            loadChats();
+        }
+
+        // ============================================================
+        // Photos
+        // ============================================================
+        async function loadPhotos() {
+            try {
+                const res = await fetch('/api/photos');
+                photosData = await res.json();
+                renderPhotos();
+            } catch (e) {
+                console.error('Failed to load photos', e);
+            }
+        }
+
+        function renderPhotos() {
+            const container = document.getElementById('photosList');
+            if (photosData.length === 0) {
+                container.innerHTML = '<div class="empty-state"><h3>暂无照片</h3><p>上传照片自动生成描述</p></div>';
+                return;
+            }
+
+            container.innerHTML = photosData.map(p => `
+                <div class="photo-card">
+                    <div class="photo-placeholder">📷</div>
+                    <div class="photo-info">
+                        <div class="photo-name">${p.filename}</div>
+                        <div class="photo-desc">${p.description}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('photoUploadArea').addEventListener('click', () => {
+            document.getElementById('photoInput').click();
+        });
+
+        document.getElementById('photoInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const res = await fetch('/api/photos/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.description) {
+                    loadPhotos();
+                } else {
+                    alert('分析失败，请重试');
+                }
+            } catch (err) {
+                alert('上传失败');
+            }
+            e.target.value = '';
+        });
+
+        // ============================================================
+        // Values
+        // ============================================================
+        async function loadValues() {
+            try {
+                const res = await fetch('/api/values');
+                const data = await res.json();
+                document.getElementById('valuesEditor').innerHTML = data.content.replace(/\n/g, '<br>');
+            } catch (e) {
+                console.error('Failed to load values', e);
+            }
+        }
+
+        async function saveValues() {
+            const content = document.getElementById('valuesEditor').innerText;
+            await fetch('/api/values', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content })
+            });
+            alert('保存成功');
+        }
+
+        // ============================================================
+        // Relationships
+        // ============================================================
+        async function loadRelationships() {
+            try {
+                const res = await fetch('/api/relationships');
+                const data = await res.json();
+                document.getElementById('relationshipsEditor').innerHTML = data.content.replace(/\n/g, '<br>');
+            } catch (e) {
+                console.error('Failed to load relationships', e);
+            }
+        }
+
+        async function saveRelationships() {
+            const content = document.getElementById('relationshipsEditor').innerText;
+            await fetch('/api/relationships', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content })
+            });
+            alert('保存成功');
+        }
+
+        // ============================================================
+        // AI Insights
+        // ============================================================
+        async function extractInsights() {
+            const btn = event.target.closest('button');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading">提取中...</span>';
+            
+            try {
+                const res = await fetch('/api/insights/extract', { method: 'POST' });
+                const data = await res.json();
+                
+                if (data.lessons && data.lessons.length > 0) {
+                    renderLessons(data.lessons);
+                }
+                
+                if (data.relationships && data.relationships.length > 0) {
+                    renderExtractedRelationships(data.relationships);
+                }
+                
+                if ((!data.lessons || data.lessons.length === 0) && 
+                    (!data.relationships || data.relationships.length === 0)) {
+                    alert('未能提取到有效信息，请先添加更多人生大事记');
+                }
+            } catch (e) {
+                alert('提取失败: ' + e.message);
+            }
+            
+            btn.disabled = false;
+            btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="13,2 3,14 12,14 11,22 21,10 12,10 13,2"/>
+            </svg> AI 提取`;
+        }
+
+        function renderLessons(lessons) {
+            const container = document.getElementById('lessonsList');
+            if (!lessons || lessons.length === 0) {
+                container.innerHTML = '<div class="empty-state"><h3>暂无经验</h3><p>点击"AI 提取"从时间线中提取</p></div>';
+                return;
+            }
+            
+            container.innerHTML = lessons.map(l => `
+                <div class="item-row">
+                    <div class="item-info">
+                        <div class="item-title">${l.year} - ${l.event}</div>
+                        <div class="item-meta">${l.lesson}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderExtractedRelationships(relationships) {
+            const container = document.getElementById('extractedRelationshipsList');
+            if (!relationships || relationships.length === 0) {
+                container.innerHTML = '<div class="empty-state"><h3>暂无关系</h3><p>点击"AI 提取"从时间线中提取</p></div>';
+                return;
+            }
+            
+            container.innerHTML = relationships.map(r => `
+                <div class="item-row">
+                    <div class="item-info">
+                        <div class="item-title">${r.name}</div>
+                        <div class="item-meta">${r.role} · 首次出现: ${r.since}</div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn btn-secondary btn-sm" onclick="addRelationship('${r.name}', '${r.role}')">添加到关系网</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addRelationship(name, role) {
+            const editor = document.getElementById('relationshipsEditor');
+            const existing = editor.innerText;
+            const newEntry = `- **${name}**: ${role}`;
+            
+            if (existing.includes(name)) {
+                alert('该关系已存在');
+                return;
+            }
+            
+            editor.innerText = existing + (existing ? '\n' : '') + newEntry;
+            saveRelationships();
+        }
+
+        // ============================================================
+        // Chat
+        // ============================================================
+        function initChat() {
+            const input = document.getElementById('chatInput');
+            const btn = document.getElementById('chatSendBtn');
+
+            const send = () => {
+                const msg = input.value.trim();
+                if (!msg) return;
+                addMessage('user', msg);
+                input.value = '';
+                sendMessage(msg);
+            };
+
+            btn.addEventListener('click', send);
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') send();
+            });
+        }
+
+        function addMessage(role, content) {
+            const container = document.getElementById('chatMessages');
+            const div = document.createElement('div');
+            div.className = `chat-message ${role}`;
+            div.textContent = content;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function sendMessage(message) {
+            const btn = document.getElementById('chatSendBtn');
+            btn.disabled = true;
+
+            addMessage('assistant', '');
+
+            try {
+                const res = await fetch(`/api/chat/stream?message=${encodeURIComponent(message)}`);
+                const reader = res.body.getReader();
                 const decoder = new TextDecoder();
 
-                removeTypingIndicator();
-
-                const assistantMsg = addMessage('assistant', '');
-                let fullContent = '';
+                const lastMsg = document.querySelector('.chat-message.assistant:last-child');
 
                 while (true) {
                     const { done, value } = await reader.read();
@@ -266,31 +1925,22 @@
                             try {
                                 const parsed = JSON.parse(data);
                                 if (parsed.content) {
-                                    fullContent += parsed.content;
-                                    assistantMsg.innerHTML = `<div class="label">数字生命</div>${fullContent.replace(/\n/g, '<br>')}`;
-                                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                                    lastMsg.textContent += parsed.content;
                                 }
                             } catch (e) {
                                 if (data && data !== '[DONE]') {
-                                    fullContent += data;
-                                    assistantMsg.innerHTML = `<div class="label">数字生命</div>${fullContent.replace(/\n/g, '<br>')}`;
-                                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                                    lastMsg.textContent += data;
                                 }
                             }
                         }
                     }
                 }
-            } catch (error) {
-                removeTypingIndicator();
-                addMessage('assistant', '抱歉，连接出现了问题。请稍后再试。');
+            } catch (err) {
+                document.querySelector('.chat-message.assistant:last-child').textContent = '抱歉，出错了';
             }
 
-            sendBtn.disabled = false;
-            messageInput.focus();
+            btn.disabled = false;
         }
-
-        loadStatus();
-        messageInput.focus();
     </script>
 </body>
 </html>
