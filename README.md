@@ -12,5 +12,5 @@
 
 1. **克隆项目**
    ```bash
-   git clone https://github.com/yourname/life-legacy.git
+   git clone https://github.com/ShawnALiu/life-legacy.git
    cd life-legacy
